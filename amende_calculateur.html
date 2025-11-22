@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Calculateur d'amendes</title>
+<style>
+    body { font-family: Arial, sans-serif; background:#1e1e1e; color:white; padding:20px; }
+    h1 { text-align:center; }
+    .container { max-width:1100px; margin:auto; background:#2b2b2b; padding:20px; border-radius:10px; }
+    label { display:block; font-weight:bold; margin-bottom:5px; }
+    input, select { width:100%; padding:10px; border-radius:6px; border:none; background:#1a1a1a; color:white; }
+    .grid {display:grid; grid-template-columns: repeat(4, 1fr); gap:15px; margin-top:20px;}
+    .item { background:#242424; padding:15px; border-radius:8px; }
+    button { margin-top:20px; padding:12px; width:100%; border:none; border-radius:6px; background:#4caf50; color:white; font-size:16px; cursor:pointer; }
+    button:hover { background:#45a049; }
+    .result { margin-top:25px; padding:15px; background:#333; border-radius:8px; font-size:18px; }
+    .info { margin-top:10px; font-size:14px; color:#bbb; background:#2e2e2e; padding:10px; border-radius:6px; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Calculateur d'amendes avancé</h1>
+
+<div class="grid">
+    <div class="item"><label>Armes de poing</label><input id="poing_qty" type="number" value="0" min="0"></div>
+    <div class="item"><label>Armes d'épaule</label><input id="epaule_qty" type="number" value="0" min="0"></div>
+    <div class="item"><label>Armes de guerre</label><input id="guerre_qty" type="number" value="0" min="0"></div>
+    <div class="item"><label>Explosifs</label><input id="explosif_qty" type="number" value="0" min="0"></div>
+    <div class="item"><label>Tentative homicide civil</label><input id="homicide_qty" type="number" value="0" min="0"></div>
+    <div class="item"><label>Tentative homicide agent</label><input id="homicide_agent_qty" type="number" value="0" min="0"></div>
+    <div class="item"><label>Cannabis (unités)</label><input id="cannabis_qty" type="number" value="0" min="0"></div>
+    <div class="item"><label>Cocaïne (unités)</label><input id="cocaine_qty" type="number" value="0" min="0"></div>
+    <div class="item"><label>Méthamphétamine (unités)</label><input id="meth_qty" type="number" value="0" min="0"></div>
+    <div class="item"><label>Méthamphétamine bleue (unités)</label><input id="meth_bleue_qty" type="number" value="0" min="0"></div>
+    <div class="item"><label>Produits chimiques (unités)</label><input id="chimique_qty" type="number" value="0" min="0"></div>
+</div>
+
+<label style="margin-top:20px;">DEFCON</label>
+<select id="defcon">
+    <option value="1">DEFCON 1 (×2.0736)</option>
+    <option value="2">DEFCON 2 (×1.728)</option>
+    <option value="3">DEFCON 3 (×1.44)</option>
+    <option value="4">DEFCON 4 (×1.2)</option>
+    <option value="5" selected>DEFCON 5 (base)</option>
+</select>
+
+<label style="margin-top:15px;">Fuite / Riposte ?</label>
+<select id="fuite">
+    <option value="non" selected>Non</option>
+    <option value="oui">Oui (×1.5)</option>
+</select>
+
+<button onclick="calculer()">Calculer</button>
+<div class="result" id="result"></div>
+<div class="info">Les "produits chimiques" désignent uniquement : pseudoéphédrine, acétique anhydrique, acide phénylacétique et méthylamine.</div>
+
+<script>
+const basePrices = {
+    poing: 1500,
+    epaule: 2500,
+    guerre: 4000,
+    explosif: 800,
+    homicide: 15000,
+    homicide_agent: 20000,
+    cannabis: 80,
+    cocaine: 96,
+    meth: 128,
+    meth_bleue: 160,
+    chimique: 10
+};
+
+const defconMultipliers = {
+    5: 1,
+    4: 1.2,
+    3: 1.44,
+    2: 1.728,
+    1: 2.0736
+};
+
+function calculer() {
+    let def = document.getElementById('defcon').value;
+    let fuite = document.getElementById('fuite').value;
+    let fuiteMult = fuite === "oui" ? 1.5 : 1;
+    let total = 0;
+
+    for (let key in basePrices) {
+        let element = document.getElementById(key + '_qty');
+        if (!element) continue;
+        let qty = parseInt(element.value) || 0;
+        total += qty * basePrices[key] * defconMultipliers[def] * fuiteMult;
+    }
+
+    document.getElementById('result').innerHTML = `Total des amendes : <strong>${total.toFixed(2)}€</strong>`;
+}
+</script>
+</body>
+</html>
