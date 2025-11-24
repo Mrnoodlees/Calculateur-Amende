@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
@@ -16,7 +15,7 @@
     button { margin-top:20px; padding:12px; width:100%; border:none; border-radius:6px; background:#4caf50; color:white; font-size:16px; cursor:pointer; }
     button:hover { background:#45a049; }
     .result { margin-top:25px; padding:15px; background:#333; border-radius:8px; font-size:18px; }
-    .info { margin-top:10px; font-size:14px; color:#bbb; background:#2e2e2e; padding:10px; border-radius:6px; }
+    .info { margin-top:15px; font-size:14px; color:#bbb; background:#2e2e2e; padding:10px; border-radius:6px; }
 </style>
 </head>
 <body>
@@ -30,11 +29,17 @@
     <div class="item"><label>Explosifs</label><input id="explosif_qty" type="number" value="0" min="0"></div>
     <div class="item"><label>Tentative homicide civil</label><input id="homicide_qty" type="number" value="0" min="0"></div>
     <div class="item"><label>Tentative homicide agent</label><input id="homicide_agent_qty" type="number" value="0" min="0"></div>
-    <div class="item"><label>Cannabis (unités)</label><input id="cannabis_qty" type="number" value="0" min="0"></div>
-    <div class="item"><label>Cocaïne (unités)</label><input id="cocaine_qty" type="number" value="0" min="0"></div>
-    <div class="item"><label>Méthamphétamine (unités)</label><input id="meth_qty" type="number" value="0" min="0"></div>
-    <div class="item"><label>Méthamphétamine bleue (unités)</label><input id="meth_bleue_qty" type="number" value="0" min="0"></div>
-    <div class="item"><label>Produits chimiques (unités)</label><input id="chimique_qty" type="number" value="0" min="0"></div>
+
+    <div class="item"><label>Packets de cannabis</label><input id="cannabis_qty" type="number" value="0" min="0"></div>
+    <div class="item"><label>Packets de cocaïne</label><input id="cocaine_qty" type="number" value="0" min="0"></div>
+    <div class="item"><label>Poudre de méthamphétamine</label><input id="meth_qty" type="number" value="0" min="0"></div>
+    <div class="item"><label>Poudre de méth bleue</label><input id="meth_bleue_qty" type="number" value="0" min="0"></div>
+    <div class="item"><label>Produits chimiques</label><input id="chimique_qty" type="number" value="0" min="0"></div>
+
+    <div class="item"><label>Bourgeons cannabis</label><input id="canna_bourg" type="number" value="0" min="0"></div>
+    <div class="item"><label>Bourgeons cocaïne</label><input id="coke_bourg" type="number" value="0" min="0"></div>
+    <div class="item"><label>Seau meth blanche</label><input id="meth_seau" type="number" value="0" min="0"></div>
+    <div class="item"><label>Seau meth bleue</label><input id="blue_seau" type="number" value="0" min="0"></div>
 </div>
 
 <label style="margin-top:20px;">DEFCON</label>
@@ -54,7 +59,19 @@
 
 <button onclick="calculer()">Calculer</button>
 <div class="result" id="result"></div>
-<div class="info">Les "produits chimiques" désignent uniquement : pseudoéphédrine, acétique anhydrique, acide phénylacétique et méthylamine.</div>
+
+<div class="info">
+    <strong>Transformations :</strong><br>
+    - 1 packet = 5 bourgeons<br>
+    - 1 seau meth blanche = 5 poudres<br>
+    - 1 seau meth bleue = 4 poudres<br><br>
+    <strong>Limites DEFCON appliquées UNE SEULE FOIS au total :</strong><br>
+    • DEFCON 5 → total max 2000€<br>
+    • DEFCON 4 → total max 4000€<br>
+    • DEFCON 3 → total max 8000€<br>
+    • DEFCON 2 → total max 25 000€<br>
+    • DEFCON 1 → aucune limite
+</div>
 
 <script>
 const basePrices = {
@@ -71,26 +88,53 @@ const basePrices = {
     chimique: 10
 };
 
-const defconMultipliers = {
-    5: 1,
-    4: 1.2,
-    3: 1.44,
-    2: 1.728,
-    1: 2.0736
-};
+const defconMultipliers = { 5:1, 4:1.2, 3:1.44, 2:1.728, 1:2.0736 };
+const defconCaps = { 5:2000, 4:4000, 3:8000, 2:25000, 1:Infinity };
 
 function calculer() {
     let def = document.getElementById('defcon').value;
     let fuite = document.getElementById('fuite').value;
     let fuiteMult = fuite === "oui" ? 1.5 : 1;
+
     let total = 0;
+
+    let cannaPackets = parseInt(document.getElementById('cannabis_qty').value) || 0;
+    let cokePackets = parseInt(document.getElementById('cocaine_qty').value) || 0;
+
+    let cannaBourg = parseInt(document.getElementById('canna_bourg').value) || 0;
+    let cokeBourg = parseInt(document.getElementById('coke_bourg').value) || 0;
+
+    cannaPackets += cannaBourg / 5;
+    cokePackets += cokeBourg / 5;
+
+    let methPowder = parseInt(document.getElementById('meth_qty').value) || 0;
+    let bluePowder = parseInt(document.getElementById('meth_bleue_qty').value) || 0;
+
+    let methSeau = parseInt(document.getElementById('meth_seau').value) || 0;
+    let blueSeau = parseInt(document.getElementById('blue_seau').value) || 0;
+
+    methPowder += methSeau * 5;
+    bluePowder += blueSeau * 4;
+
+    const computed = {
+        cannabis: cannaPackets,
+        cocaine: cokePackets,
+        meth: methPowder,
+        meth_bleue: bluePowder
+    };
 
     for (let key in basePrices) {
         let element = document.getElementById(key + '_qty');
-        if (!element) continue;
-        let qty = parseInt(element.value) || 0;
-        total += qty * basePrices[key] * defconMultipliers[def] * fuiteMult;
+        let qty = 0;
+
+        if (computed[key] !== undefined) qty = computed[key];
+        else if (element) qty = parseInt(element.value) || 0;
+
+        let valeur = qty * basePrices[key] * defconMultipliers[def] * fuiteMult;
+        total += valeur;
     }
+
+    total = Math.min(total, defconCaps[def]);
 
     document.getElementById('result').innerHTML = `Total des amendes : <strong>${total.toFixed(2)}€</strong>`;
 }
